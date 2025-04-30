@@ -10,7 +10,8 @@ function Category() {
   const [nameEn, setNameEn] = useState('');
   const [nameRu, setNameRu] = useState('');
   const [nameDe, setNameDe] = useState('');
-  const [showModal, setShowModal] = useState(false); // Modalni ochish uchun state
+  const [showModal, setShowModal] = useState(false); 
+  const[clickData , setclickData]=useState("")
 
   // Tokenni olish
   const token = localStorage.getItem('accesstoken');
@@ -93,6 +94,33 @@ function Category() {
     }
     )
   }
+  //modal
+    const editCategory = (e) =>{
+      e.preventDefault()
+      fetch(`https://back.ifly.com.uz/api/category/${clickData?.id}`,{
+        method:"PATCH" ,
+        headers:{
+          "Content-type":"application/json",
+          "Authorization":`Bearer ${token}`
+        },
+        body:JSON.stringify({
+          name_en: nameEn,
+          name_ru: nameRu,
+          name_de: nameDe
+        })
+      }).then((res)=>res.json())
+      .then((elem)=>{
+        if (elem?.success) {
+          toast.success("Category edit succesffuly")
+          getCategory();
+          setclickData("")
+          setShowModal(false)
+        }
+        else{
+          toast.error("Category edit failed")
+        }
+      })
+    }
   return (
     <div className='p-5'>
       {loading ? (
@@ -106,7 +134,9 @@ function Category() {
             <h1 className='text-[#000957] font-medium text-xl'>Category Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -134,7 +164,10 @@ function Category() {
                   <td className="border border-gray-300 p-3 text-center">
                     <div className='flex items-center justify-evenly'>
                       <button className="text-[#000957] hover:text-[#000957]">
-                        <BorderColorIcon size={24} />
+                        <BorderColorIcon size={24} onClick={()=>{
+                          setShowModal(!showModal)
+                          setclickData(category);
+                        }} />
                       </button>
                       <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={()=> deleteCategory(category?.id)}>
                         <RiDeleteBin6Line size={24} />
@@ -159,9 +192,9 @@ function Category() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Add Category</h2>
+            <h2 className="text-xl font-semibold mb-4">{clickData?.id>0 ? "Edit Category ": "Add Category"}</h2>
 
-            <form onSubmit={AddCategory}>
+            <form onSubmit={clickData?.id>0 ? editCategory : AddCategory}>
               <div className="mb-4">
                 <label className="block text-gray-700 mb-2">Category Name (EN):</label>
                 <input
@@ -170,7 +203,7 @@ function Category() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setNameEn(e.target.value)}
-                  value={nameEn}
+                  defaultValue={clickData?.id>0 ? clickData?.name_en : ""}
                 />
               </div>
 
@@ -182,7 +215,7 @@ function Category() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setNameRu(e.target.value)}
-                  value={nameRu}
+                  defaultValue={clickData?.id>0 ? clickData?.name_ru : ""}
                 />
               </div>
 
@@ -194,7 +227,7 @@ function Category() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setNameDe(e.target.value)}
-                  value={nameDe}
+                  defaultValue={clickData?.id>0 ? clickData?.name_de : ""}
                 />
               </div>
 
@@ -203,7 +236,7 @@ function Category() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-5 py-2 rounded-lg"
                 >
-                  {loading ? "Saved..." : "Add"}
+                  {clickData?.id >0 ? "Edit" : "Add"}
                 </button>
                 <button
                   onClick={closeModal}

@@ -13,7 +13,9 @@ function Faq() {
   const [answerEn, setAnswerEn] = useState('');
   const [answerRu, setAnswerRu] = useState('');
   const [answerDe, setAnswerDe] = useState('');
-  const [showModal, setShowModal] = useState(false); // Modalni ochish uchun state
+  const [showModal, setShowModal] = useState(false); 
+    const[clickData , setclickData]=useState("")
+  
 
 
   // Tokenni olish
@@ -104,6 +106,36 @@ function Faq() {
       }
       )
   }
+    // modal
+    const editFaq = (e) =>{
+      e.preventDefault()
+      fetch(`https://back.ifly.com.uz/api/faq/${clickData?.id}`,{
+        method:"PATCH" ,
+        headers:{
+          "Content-type":"application/json",
+          "Authorization":`Bearer ${token}`
+        },
+        body:JSON.stringify({
+          question_en: questionEn,
+          question_ru: questionRu,
+          question_de: questionDe,
+          answer_en: answerEn,
+          answer_ru: answerRu,
+          answer_de: answerDe
+        })
+      }).then((res)=>res.json())
+      .then((elem)=>{
+        if (elem?.success) {
+          toast.success("Faq edit succesffuly")
+          getFaq();
+          setclickData("")
+          setShowModal(false)
+        }
+        else{
+          toast.error("Faq edit failed")
+        }
+      })
+    }
   return (
     <div className='p-5'>
       {loading ? (
@@ -117,7 +149,9 @@ function Faq() {
             <h1 className='text-[#000957] font-medium text-xl'>Faq Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -143,7 +177,11 @@ function Faq() {
                     <td className="border border-gray-300 p-3 text-center">
                       <div className='flex items-center justify-evenly'>
                         <button className="text-[#000957] hover:text-[#000957]">
-                          <BorderColorIcon size={24} />
+                          <BorderColorIcon size={24}
+                             onClick={()=>{
+                              setShowModal(!showModal)
+                              setclickData(faq);
+                            }} />
                         </button>
                         <button
                           className="text-[#000957] hover:text-[#000957] cursor-pointer"
@@ -172,9 +210,8 @@ function Faq() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center mt-10 bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-4 rounded-lg shadow-lg w-82">
-            <h2 className="text-xl font-semibold mb-2 text-center">Add Faq</h2>
-
-            <form onSubmit={AddFaq}>
+            <h2 className="text-xl font-semibold mb-2 text-center">{clickData?.id>0 ? "Edit Faq ": "Add Faq"}</h2>
+            <form onSubmit={clickData?.id>0 ? editFaq : AddFaq}>
               {/* Title EN */}
               <div className="mb-2">
                 <input
@@ -183,7 +220,7 @@ function Faq() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setQuestionEn(e.target.value)}
-                  value={questionEn}
+                  defaultValue={clickData?.id>0 ? clickData?.question_en : ""}
                 />
               </div>
                {/* Description EN */}
@@ -194,7 +231,7 @@ function Faq() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAnswerEn(e.target.value)}
-                  value={answerEn}
+                  defaultValue={clickData?.id>0 ? clickData?.answer_en : ""}
                 />
               </div>
 
@@ -206,7 +243,7 @@ function Faq() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setQuestionRu(e.target.value)}
-                  value={questionRu}
+                  defaultValue={clickData?.id>0 ? clickData?.question_ru : ""}
                 />
               </div>
               
@@ -218,7 +255,7 @@ function Faq() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAnswerRu(e.target.value)}
-                  value={answerRu}
+                  defaultValue={clickData?.id>0 ? clickData?.answer_ru : ""}
                 />
               </div>
 
@@ -230,7 +267,7 @@ function Faq() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setQuestionDe(e.target.value)}
-                  value={questionDe}
+                  defaultValue={clickData?.id>0 ? clickData?.question_de : ""}
                 />
               </div>
 
@@ -243,7 +280,7 @@ function Faq() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAnswerDe(e.target.value)}
-                  value={answerDe}
+                  defaultValue={clickData?.id>0 ? clickData?.answer_de : ""}
                 />
               </div>
 
@@ -254,8 +291,8 @@ function Faq() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-4 py-2 rounded-lg hover:bg-[#001973] transition"
                 >
-                  {loading ? "Saving..." : "Add"}
-                </button>
+                  {clickData?.id >0 ? "Edit" : "Add"}
+                  </button>
                 <button
                   type="button"
                   onClick={closeModal}

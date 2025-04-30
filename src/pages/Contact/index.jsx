@@ -12,7 +12,9 @@ function Contact() {
   const [adressEn, setAdressEn] = useState('');
   const [adressRu, setAdressRu] = useState('');
   const [adressDe, setAdressDe] = useState('');
-  const [showModal, setShowModal] = useState(false); // Modalni ochish uchun state
+  const [showModal, setShowModal] = useState(false);
+  const [clickData, setclickData] = useState("")
+
 
   // Tokenni olish
   const token = localStorage.getItem('accesstoken');
@@ -59,7 +61,7 @@ function Contact() {
       },
       body: JSON.stringify({
         phone_number: phone,
-        email:email,
+        email: email,
         address_en: adressEn,
         address_ru: adressRu,
         address_de: adressDe
@@ -72,7 +74,7 @@ function Contact() {
           closeModal(true)
           getContact()
         } else {
-           toast.error(item?.message?.message)
+          toast.error(item?.message?.message)
         }
       })
 
@@ -80,25 +82,55 @@ function Contact() {
 
 
   // delete
-  const deleteContact =(id)=>{
-    fetch(`https://back.ifly.com.uz/api/contact/${id}` ,{
-      method:"DELETE",
-      headers:{
-        "Content-type" :"application/json",
-        "authorization":`Bearer ${token}`
+  const deleteContact = (id) => {
+    fetch(`https://back.ifly.com.uz/api/contact/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        "authorization": `Bearer ${token}`
       }
     })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res?.success) {
-         toast.success(res?.data?.message)
-         getContact()
-      }else{
-        toast.error(res?.message)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res?.success) {
+          toast.success(res?.data?.message)
+          getContact()
+        } else {
+          toast.error(res?.message)
+        }
       }
-    }
-    )
+      )
   }
+  // modal
+  const editContact = (e) => {
+    e.preventDefault()
+    fetch(`https://back.ifly.com.uz/api/contact/${clickData?.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        phone_number: phone,
+        email: email,
+        address_en: adressEn,
+        address_ru: adressRu,
+        address_de: adressDe
+      })
+    }).then((res) => res.json())
+      .then((elem) => {
+        if (elem?.success) {
+          toast.success("Contact edit succesffuly")
+          getContact();
+          setclickData("")
+          setShowModal(false)
+        }
+        else {
+          toast.error("Contact edit failed")
+        }
+      })
+  }
+
   return (
     <div className='p-5'>
       {loading ? (
@@ -112,7 +144,9 @@ function Contact() {
             <h1 className='text-[#000957] font-medium text-xl'>Contact Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -131,31 +165,34 @@ function Contact() {
             </thead>
             <tbody>
               {contact.length > 0 ? (
-              contact.map((contact, index) => (
-                <tr key={contact.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="border border-gray-300 p-3">{index + 1}</td>
-                  <td className="border border-gray-300 p-3">{contact.phone_number}</td>
-                  <td className="border border-gray-300 p-3">{contact.email}</td>
-                  <td className="border border-gray-300 p-3">{contact.address_en}</td>
-                  <td className="border border-gray-300 p-3 text-center">
-                    <div className='flex items-center justify-evenly'>
-                      <button className="text-[#000957] hover:text-[#000957]">
-                        <BorderColorIcon size={24} />
-                      </button>
-                      <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={()=> deleteContact(contact?.id)}>
-                        <RiDeleteBin6Line size={24} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                 ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="text-center p-5 text-gray-500">
-                      Ma'lumot yo'q
+                contact.map((contact, index) => (
+                  <tr key={contact.id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="border border-gray-300 p-3">{index + 1}</td>
+                    <td className="border border-gray-300 p-3">{contact.phone_number}</td>
+                    <td className="border border-gray-300 p-3">{contact.email}</td>
+                    <td className="border border-gray-300 p-3">{contact.address_en}</td>
+                    <td className="border border-gray-300 p-3 text-center">
+                      <div className='flex items-center justify-evenly'>
+                        <button className="text-[#000957] hover:text-[#000957]">
+                          <BorderColorIcon size={24} onClick={()=>{
+                          setShowModal(!showModal)
+                          setclickData(contact);
+                        }} />
+                        </button>
+                        <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={() => deleteContact(contact?.id)}>
+                          <RiDeleteBin6Line size={24} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                   )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center p-5 text-gray-500">
+                    Ma'lumot yo'q
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -165,9 +202,8 @@ function Contact() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center mt-10 bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-4 rounded-lg shadow-lg w-82">
-            <h2 className="text-xl font-semibold mb-2 text-center">Add Contact</h2>
-
-            <form onSubmit={AddContact}>
+            <h2 className="text-xl font-semibold mb-2 text-center">{clickData?.id>0 ? "Edit Contact ": "Add Contact"}</h2>
+            <form onSubmit={clickData?.id>0 ? editContact : AddContact}>
               {/* Title EN */}
               <div className="mb-2">
                 <input
@@ -176,7 +212,7 @@ function Contact() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setPhone(e.target.value)}
-                  value={phone}
+                  defaultValue={clickData?.id>0 ? clickData?.phone_number : ""}
                 />
               </div>
 
@@ -188,7 +224,7 @@ function Contact() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setEmail(e.target.value)}
-                  value={email}
+                  defaultValue={clickData?.id>0 ? clickData?.email : ""}
                 />
               </div>
 
@@ -200,7 +236,7 @@ function Contact() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAdressEn(e.target.value)}
-                  value={adressEn}
+                  defaultValue={clickData?.id>0 ? clickData?.address_en : ""}
                 />
               </div>
 
@@ -212,7 +248,7 @@ function Contact() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAdressRu(e.target.value)}
-                  value={adressRu}
+                  defaultValue={clickData?.id>0 ? clickData?.address_ru : ""}
                 />
               </div>
 
@@ -224,7 +260,7 @@ function Contact() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setAdressDe(e.target.value)}
-                  value={adressDe}
+                  defaultValue={clickData?.id>0 ? clickData?.address_de : ""}
                 />
               </div>
 
@@ -235,8 +271,8 @@ function Contact() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-4 py-2 rounded-lg hover:bg-[#001973] transition"
                 >
-                  {loading ? "Saving..." : "Add"}
-                </button>
+                  {clickData?.id >0 ? "Edit" : "Add"}
+                  </button>
                 <button
                   type="button"
                   onClick={closeModal}
@@ -249,7 +285,7 @@ function Contact() {
           </div>
         </div>
       )}
-        <ToastContainer />
+      <ToastContainer />
     </div>
   );
 }

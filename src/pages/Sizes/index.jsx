@@ -9,6 +9,8 @@ function Sizes() {
   const [loading, setLoading] = useState(true);
   const [sizesValue, setSizesValue] = useState('');
   const [showModal, setShowModal] = useState(false);
+    const[clickData , setclickData]=useState("")
+  
 
   const token = localStorage.getItem('accesstoken');
 
@@ -27,9 +29,6 @@ function Sizes() {
     getSizes();
   }, []);
 
-  const openModal = () => {
-    setShowModal(true);
-  };
 
   const closeModal = () => {
     setShowModal(false);
@@ -85,6 +84,31 @@ function Sizes() {
       });
   };
 
+  // modal
+    const editSizes = (e) =>{
+      e.preventDefault()
+      fetch(`https://back.ifly.com.uz/api/sizes/${clickData?.id}`,{
+        method:"PATCH" ,
+        headers:{
+          "Content-type":"application/json",
+          "Authorization":`Bearer ${token}`
+        },
+        body:JSON.stringify({
+          size: sizesValue,
+        })
+      }).then((res)=>res.json())
+      .then((elem)=>{
+        if (elem?.success) {
+          toast.success(" Sizes edit succesffuly")
+          getSizes();
+          setclickData("")
+          setShowModal(false)
+        }
+        else{
+          toast.error(" Sizes edit failed")
+        }
+      })
+    }
   return (
     <div className='p-5'>
       {loading ? (
@@ -98,7 +122,9 @@ function Sizes() {
             <h1 className='text-[#000957] font-medium text-xl'>Sizes Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -122,7 +148,11 @@ function Sizes() {
                   <td className="border border-gray-300 p-3 text-center">
                     <div className='flex items-center justify-evenly'>
                       <button className="text-[#000957] hover:text-[#000957]">
-                        <BorderColorIcon size={24} />
+                        <BorderColorIcon size={24} 
+                           onClick={()=>{
+                            setShowModal(!showModal)
+                            setclickData(sizes);
+                          }} />
                       </button>
                       <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={() => deleteSizes(sizes?.id)}>
                         <RiDeleteBin6Line size={24} />
@@ -147,9 +177,8 @@ function Sizes() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Add Sizes</h2>
-
-            <form onSubmit={AddSizes}>
+            <h2 className="text-xl font-semibold mb-4">{clickData?.id>0 ? "Edit Sizes ": "Add Sizes"}</h2>
+            <form onSubmit={clickData?.id>0 ? editSizes : AddSizes}>
               <div className="mb-4">
                 <input
                   type="number"
@@ -157,7 +186,7 @@ function Sizes() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setSizesValue(e.target.value)}
-                  value={sizesValue}
+                  defaultValue={clickData?.id>0 ? clickData?.size : ""}
                 />
               </div>
 
@@ -166,7 +195,7 @@ function Sizes() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-5 py-2 rounded-lg"
                 >
-                  {loading ? "Saving..." : "Add"}
+                   {clickData?.id >0 ? "Edit" : "Add"}
                 </button>
                 <button
                   onClick={closeModal}

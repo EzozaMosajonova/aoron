@@ -7,11 +7,12 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 function Discount() {
   const [discount, setDiscount] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const[clickData , setclickData]=useState("")
   const [discountValue, setDiscountValue] = useState('');
   const [startedAt, setStartedAt] = useState('');
   const [finishedAt, setFinishedAt] = useState('');
   const [status, setStatus] = useState(false);
+  const imgUrl = "https://back.ifly.com.uz/api/images";
 
   const [showModal, setShowModal] = useState(false);
 
@@ -32,9 +33,7 @@ function Discount() {
     getDiscount();
   }, []);
 
-  const openModal = () => {
-    setShowModal(true);
-  };
+
 
   const closeModal = () => {
     setShowModal(false);
@@ -95,6 +94,34 @@ function Discount() {
         toast.error("Delete error");
       });
   };
+  // modal
+  const editDiscount = (e) =>{
+    e.preventDefault()
+    fetch(`https://back.ifly.com.uz/api/discount/${clickData?.id}`,{
+      method:"PATCH" ,
+      headers:{
+        "Content-type":"application/json",
+        "Authorization":`Bearer ${token}`
+      },
+      body:JSON.stringify({
+        discount: Number(discountValue),
+        started_at: startedAt,
+        finished_at: finishedAt,
+        status: status
+      })
+    }).then((res)=>res.json())
+    .then((elem)=>{
+      if (elem?.success) {
+        toast.success(" Discount edit succesffuly")
+        getDiscount();
+        setclickData("")
+        setShowModal(false)
+      }
+      else{
+        toast.error(" Discount edit failed")
+      }
+    })
+  }
 
   return (
     <div className='p-5'>
@@ -109,7 +136,9 @@ function Discount() {
             <h1 className='text-[#000957] font-medium text-xl'>Discount Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -143,7 +172,11 @@ function Discount() {
                   <td className="border border-gray-300 p-3 text-center">
                     <div className='flex items-center justify-evenly'>
                       <button className="text-[#000957] hover:text-[#000957]">
-                        <BorderColorIcon size={24} />
+                        <BorderColorIcon size={24} 
+                        onClick={()=>{
+                          setShowModal(!showModal)
+                          setclickData(discount);
+                        }} />
                       </button>
                       <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={() => deleteDiscount(discount?.id)}>
                         <RiDeleteBin6Line size={24} />
@@ -168,9 +201,8 @@ function Discount() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Add Discount</h2>
-
-            <form onSubmit={AddDiscount}>
+            <h2 className="text-xl font-semibold mb-4">{clickData?.id>0 ? "Edit Discount ": "Add Discount"}</h2>
+            <form onSubmit={clickData?.id>0 ? editDiscount : AddDiscount}>
               <div className="mb-4">
                 <input
                   type="number"
@@ -178,7 +210,7 @@ function Discount() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setDiscountValue(e.target.value)}
-                  value={discountValue}
+                  defaultValue={clickData?.id>0 ? clickData?.discount : ""}
                 />
               </div>
 
@@ -188,7 +220,7 @@ function Discount() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setStartedAt(e.target.value)}
-                  value={startedAt}
+                  defaultValue={clickData?.id>0 ? clickData?.startedAt : ""}
                 />
               </div>
 
@@ -198,7 +230,7 @@ function Discount() {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   onChange={(e) => setFinishedAt(e.target.value)}
-                  value={finishedAt}
+                  defaultValue={clickData?.id>0 ? clickData?.finishedAt : ""}
                 />
               </div>
 
@@ -208,6 +240,7 @@ function Discount() {
                   className="mr-2"
                   checked={status}
                   onChange={(e) => setStatus(e.target.checked)}
+                  defaultValue={clickData?.id>0 ? clickData?.status : ""}
                 />
                 <label className="text-gray-700 font-medium">Active</label>
               </div>
@@ -217,7 +250,7 @@ function Discount() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-5 py-2 rounded-lg"
                 >
-                  {loading ? "Saving..." : "Add"}
+                  {clickData?.id >0 ? "Edit" : "Add"}
                 </button>
                 <button
                   onClick={closeModal}

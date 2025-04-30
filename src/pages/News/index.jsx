@@ -14,7 +14,9 @@ function News() {
   const [titleRu, setTitleRu] = useState('');
   const [titleDe, setTitleDe] = useState('');
   const [images, setImages] = useState();
-  const [showModal, setShowModal] = useState(false); // Modalni ochish uchun state
+  const [showModal, setShowModal] = useState(false);
+  const [clickData, setclickData] = useState("")
+
 
 
   // Tokenni olish
@@ -111,6 +113,36 @@ function News() {
       }
       )
   }
+  // modal
+  const editNews = (e) => {
+    e.preventDefault()
+    const formData = new FormData();
+    formData.append("file", images); // Fayl obyekt (File)
+    formData.append("title_en", titleEn);
+    formData.append("title_ru", titleRu);
+    formData.append("title_de", titleDe);
+    formData.append("description_en", descriptionEn);
+    formData.append("description_ru", descriptionRu);
+    formData.append("description_de", descriptionDe);
+    fetch(`https://back.ifly.com.uz/api/news/${clickData?.id}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      body: formData,
+    }).then((res) => res.json())
+      .then((elem) => {
+        if (elem?.success) {
+          toast.success("News edit succesffuly")
+          getNews();
+          setclickData("")
+          setShowModal(false)
+        }
+        else {
+          toast.error("News edit failed")
+        }
+      })
+  }
   return (
     <div className='p-5'>
       {loading ? (
@@ -124,7 +156,9 @@ function News() {
             <h1 className='text-[#000957] font-medium text-xl'>News Lists</h1>
             <button
               className="flex items-center bg-[#000957] text-white px-5 py-2 rounded-lg"
-              onClick={openModal}
+              onClick={()=>{
+                setShowModal(!showModal)
+              }}
             >
               <IoMdAdd className='text-white mr-2' />
               Add
@@ -158,7 +192,11 @@ function News() {
                     <td className="border border-gray-300 p-3 text-center">
                       <div className='flex items-center justify-evenly'>
                         <button className="text-[#000957] hover:text-[#000957]">
-                          <BorderColorIcon size={24} />
+                          <BorderColorIcon size={24}
+                            onClick={()=>{
+                              setShowModal(!showModal)
+                              setclickData(news);
+                            }} />
                         </button>
                         <button
                           className="text-[#000957] hover:text-[#000957] cursor-pointer"
@@ -187,9 +225,8 @@ function News() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center mt-10 bg-opacity-20 backdrop-blur-sm z-50">
           <div className="bg-white p-4 rounded-lg shadow-lg w-82">
-            <h2 className="text-xl font-semibold mb-2 text-center">Add News</h2>
-
-            <form onSubmit={AddNews}>
+            <h2 className="text-xl font-semibold mb-2 text-center">{clickData?.id>0 ? "Edit News ": "Add News"}</h2>
+            <form onSubmit={clickData?.id>0 ? editNews : AddNews}>
               {/* Title EN */}
               <div className="mb-2">
                 <input
@@ -198,7 +235,7 @@ function News() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setTitleEn(e.target.value)}
-                  value={titleEn}
+                  defaultValue={clickData?.id>0 ? clickData?.title_en : ""}
                 />
               </div>
 
@@ -210,7 +247,7 @@ function News() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setTitleRu(e.target.value)}
-                  value={titleRu}
+                  defaultValue={clickData?.id>0 ? clickData?.title_ru : ""}
                 />
               </div>
 
@@ -222,7 +259,7 @@ function News() {
                   required
                   className="w-full px-3 py-1 border border-gray-300 rounded-lg focus:outline-none"
                   onChange={(e) => setTitleDe(e.target.value)}
-                  value={titleDe}
+                  defaultValue={clickData?.id>0 ? clickData?.title_de : ""}
                 />
               </div>
 
@@ -234,7 +271,7 @@ function News() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setDescriptionEn(e.target.value)}
-                  value={descriptionEn}
+                  defaultValue={clickData?.id>0 ? clickData?.description_en : ""}
                 />
               </div>
 
@@ -246,7 +283,7 @@ function News() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setDescriptionRu(e.target.value)}
-                  value={descriptionRu}
+                  defaultValue={clickData?.id>0 ? clickData?.description_ru : ""}
                 />
               </div>
 
@@ -258,7 +295,7 @@ function News() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none resize-none"
                   onChange={(e) => setDescriptionDe(e.target.value)}
-                  value={descriptionDe}
+                  defaultValue={clickData?.id>0 ? clickData?.description_de : ""}
                 />
               </div>
 
@@ -279,7 +316,7 @@ function News() {
                   disabled={loading}
                   className="bg-[#000957] text-white px-4 py-2 rounded-lg hover:bg-[#001973] transition"
                 >
-                  {loading ? "Saving..." : "Add"}
+                  {clickData?.id >0 ? "Edit" : "Add"}
                 </button>
                 <button
                   type="button"
