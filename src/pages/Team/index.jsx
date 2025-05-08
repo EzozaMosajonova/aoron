@@ -14,8 +14,7 @@ function Team() {
   const [images, setImages] = useState();
   const [showModal, setShowModal] = useState(false);
   const [clickData, setclickData] = useState("")
-  const imgUrl = "https://back.ifly.com.uz/image";
-
+  const imgUrl = "https://back.ifly.com.uz"
 
   // Tokenni olish
   const token = localStorage.getItem('accesstoken');

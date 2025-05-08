@@ -16,6 +16,7 @@ function News() {
   const [images, setImages] = useState();
   const [showModal, setShowModal] = useState(false);
   const [clickData, setclickData] = useState("")
+  const imgUrl = "https://back.ifly.com.uz"
 
 
 
@@ -182,7 +183,7 @@ function News() {
                     <td className="border border-gray-300 p-3">{index + 1}</td>
                     <td className="border border-gray-300 p-3">
                       <img
-                        src={news.image}
+                        src={`${imgUrl}/${news.image}`}
                         alt={news.title_en}
                         className="w-16 rounded-[50%] h-16 mx-auto"
                       />
