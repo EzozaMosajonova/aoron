@@ -19,7 +19,7 @@ function Colors() {
   // Kategoriyalarni olish
   const getColors = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/colors")
+    fetch("https://testaoron.limsa.uz/api/colors")
       .then((res) => res.json())
       .then((item) => {
         setColors(item?.data);
@@ -48,7 +48,7 @@ function Colors() {
   // Yangi kategoriya qo‘shish
   const AddColors = (event) => {
     event.preventDefault()
-    fetch("https://back.ifly.com.uz/api/colors", {
+    fetch("https://testaoron.limsa.uz/api/colors", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -76,7 +76,7 @@ function Colors() {
 
   // delete
   const deleteColors = (id) => {
-    fetch(`https://back.ifly.com.uz/api/colors/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/colors/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -97,7 +97,7 @@ function Colors() {
   // modal
   const editColor = (e) => {
     e.preventDefault()
-    fetch(`https://back.ifly.com.uz/api/colors/${clickData?.id}`, {
+    fetch(`https://testaoron.limsa.uz/api/colors/${clickData?.id}`, {
       method: "PATCH",
       headers: {
         "Content-type": "application/json",
@@ -170,7 +170,7 @@ function Colors() {
                               setclickData(color);
                             }} />
                         </button>
-                        <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={() => deleteColors(colors?.id)}>
+                        <button className="text-[#000957] hover:text-[#000957] cursor-pointer" onClick={() => deleteColors(color?.id)}>
                           <RiDeleteBin6Line size={24} />
                         </button>
                       </div>

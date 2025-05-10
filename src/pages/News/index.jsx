@@ -16,7 +16,7 @@ function News() {
   const [images, setImages] = useState();
   const [showModal, setShowModal] = useState(false);
   const [clickData, setclickData] = useState("")
-  const imgUrl = "https://back.ifly.com.uz"
+  const imgUrl = "https://testaoron.limsa.uz"
 
 
 
@@ -26,7 +26,7 @@ function News() {
   //  News olish
   const getNews = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/news")
+    fetch("https://testaoron.limsa.uz/api/news")
       .then((res) => res.json())
       .then((item) => {
         setNews(item?.data);
@@ -68,7 +68,7 @@ function News() {
     formData.append("description_ru", descriptionRu);
     formData.append("description_de", descriptionDe);
 
-    fetch("https://back.ifly.com.uz/api/news", {
+    fetch("https://testaoron.limsa.uz/api/news", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -96,7 +96,7 @@ function News() {
 
   // delete
   const deleteNews = (id) => {
-    fetch(`https://back.ifly.com.uz/api/news/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/news/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -125,7 +125,7 @@ function News() {
     formData.append("description_en", descriptionEn);
     formData.append("description_ru", descriptionRu);
     formData.append("description_de", descriptionDe);
-    fetch(`https://back.ifly.com.uz/api/news/${clickData?.id}`, {
+    fetch(`https://testaoron.limsa.uz/api/news/${clickData?.id}`, {
       method: "PATCH",
       headers: {
         "Authorization": `Bearer ${token}`

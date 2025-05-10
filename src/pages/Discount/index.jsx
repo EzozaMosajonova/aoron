@@ -12,7 +12,7 @@ function Discount() {
   const [startedAt, setStartedAt] = useState('');
   const [finishedAt, setFinishedAt] = useState('');
   const [status, setStatus] = useState(false);
-  const imgUrl = "https://back.ifly.com.uz/api/images";
+  const imgUrl = "https://testaoron.limsa.uz/api/images";
 
   const [showModal, setShowModal] = useState(false);
 
@@ -20,7 +20,7 @@ function Discount() {
 
   const getDiscount = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/discount")
+    fetch("https://testaoron.limsa.uz/api/discount")
       .then((res) => res.json())
       .then((item) => {
         setDiscount(item?.data);
@@ -45,7 +45,7 @@ function Discount() {
 
   const AddDiscount = (event) => {
     event.preventDefault();
-    fetch("https://back.ifly.com.uz/api/discount", {
+    fetch("https://testaoron.limsa.uz/api/discount", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -74,7 +74,7 @@ function Discount() {
   };
 
   const deleteDiscount = (id) => {
-    fetch(`https://back.ifly.com.uz/api/discount/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/discount/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -97,7 +97,7 @@ function Discount() {
   // modal
   const editDiscount = (e) =>{
     e.preventDefault()
-    fetch(`https://back.ifly.com.uz/api/discount/${clickData?.id}`,{
+    fetch(`https://testaoron.limsa.uz/api/discount/${clickData?.id}`,{
       method:"PATCH" ,
       headers:{
         "Content-type":"application/json",

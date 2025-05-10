@@ -16,7 +16,7 @@ function Sizes() {
 
   const getSizes = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/sizes")
+    fetch("https://testaoron.limsa.uz/api/sizes")
       .then((res) => res.json())
       .then((item) => {
         setSizes(item?.data);
@@ -37,7 +37,7 @@ function Sizes() {
 
   const AddSizes = (event) => {
     event.preventDefault();
-    fetch("https://back.ifly.com.uz/api/sizes", {
+    fetch("https://testaoron.limsa.uz/api/sizes", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -63,7 +63,7 @@ function Sizes() {
   };
 
   const deleteSizes = (id) => {
-    fetch(`https://back.ifly.com.uz/api/sizes/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/sizes/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -87,7 +87,7 @@ function Sizes() {
   // modal
     const editSizes = (e) =>{
       e.preventDefault()
-      fetch(`https://back.ifly.com.uz/api/sizes/${clickData?.id}`,{
+      fetch(`https://testaoron.limsa.uz/api/sizes/${clickData?.id}`,{
         method:"PATCH" ,
         headers:{
           "Content-type":"application/json",

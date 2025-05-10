@@ -24,7 +24,7 @@ function Faq() {
   //  faq olish
   const getFaq = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/faq")
+    fetch("https://testaoron.limsa.uz/api/faq")
       .then((res) => res.json())
       .then((item) => {
         setFaq(item?.data);
@@ -56,7 +56,7 @@ function Faq() {
  // Yangi kategoriya qo‘shish
   const AddFaq = (event) => {
     event.preventDefault()
-    fetch("https://back.ifly.com.uz/api/faq", {
+    fetch("https://testaoron.limsa.uz/api/faq", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -88,7 +88,7 @@ function Faq() {
 
   // delete
   const deleteFaq = (id) => {
-    fetch(`https://back.ifly.com.uz/api/faq/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/faq/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -109,7 +109,7 @@ function Faq() {
     // modal
     const editFaq = (e) =>{
       e.preventDefault()
-      fetch(`https://back.ifly.com.uz/api/faq/${clickData?.id}`,{
+      fetch(`https://testaoron.limsa.uz/api/faq/${clickData?.id}`,{
         method:"PATCH" ,
         headers:{
           "Content-type":"application/json",

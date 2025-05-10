@@ -13,7 +13,7 @@ export default function Login() {
 }, [navigate]);
   const LoginSubmit = (event) => {
     event.preventDefault()
-    fetch("https://back.ifly.com.uz/api/auth/login", {
+    fetch("https://testaoron.limsa.uz/api/auth/login", {
       method: "POST",
       headers: {
         "Content-type": "application/json"

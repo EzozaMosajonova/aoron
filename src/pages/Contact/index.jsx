@@ -22,7 +22,7 @@ function Contact() {
   // Kategoriyalarni olish
   const getContact = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/contact")
+    fetch("https://testaoron.limsa.uz/api/contact")
       .then((res) => res.json())
       .then((item) => {
         setContact(item?.data);
@@ -53,7 +53,7 @@ function Contact() {
   // Yangi kategoriya qo‘shish
   const AddContact = (event) => {
     event.preventDefault()
-    fetch("https://back.ifly.com.uz/api/contact", {
+    fetch("https://testaoron.limsa.uz/api/contact", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -83,7 +83,7 @@ function Contact() {
 
   // delete
   const deleteContact = (id) => {
-    fetch(`https://back.ifly.com.uz/api/contact/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/contact/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -104,7 +104,7 @@ function Contact() {
   // modal
   const editContact = (e) => {
     e.preventDefault()
-    fetch(`https://back.ifly.com.uz/api/contact/${clickData?.id}`, {
+    fetch(`https://testaoron.limsa.uz/api/contact/${clickData?.id}`, {
       method: "PATCH",
       headers: {
         "Content-type": "application/json",

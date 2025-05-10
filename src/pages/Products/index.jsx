@@ -12,29 +12,52 @@ function Products() {
   const [descriptionEn, setDescriptionEn] = useState('');
   const [descriptionRu, setDescriptionRu] = useState('');
   const [descriptionDe, setDescriptionDe] = useState('');
+  const [minSell, setMinSell] = useState(0); // boshlang‘ich qiymat
   const [titleRu, setTitleRu] = useState('');
   const [titleDe, setTitleDe] = useState('');
   const [sizes, setSizes] = useState([]);
-  const [size, setSize] = useState([]);  
-  const [colors, setColors] = useState("")
-  const [color, setColor] = useState("")
+  const [size, setSize] = useState([]);
+  const [colors, setColors] = useState([])
+  const [color, setColor] = useState([])
   const [clickData, setclickData] = useState("")
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState('');
   const [discount, setDiscount] = useState([]);
+  const [price, setPrice] = useState([]);
   const [discountId, setDiscountId] = useState('');
+  const [materials, setMaterials] = useState([{ name: '', value: '' }]);
+  const [images, setImages] = useState([]);
+  const [file, setFile] = useState(null);
 
 
-  const imgUrl = "https://back.ifly.com.uz"
+
+
+  const imgUrl = "https://testaoron.limsa.uz"
 
   // Tokenni olish
   const token = localStorage.getItem('accesstoken');
 
+  const handleMaterialChange = (index, field, value) => {
+    const updatedMaterials = [...materials];
+    updatedMaterials[index][field] = value;
+    setMaterials(updatedMaterials);
+  };
+
+  const addMaterial = () => {
+    setMaterials([...materials, { name: '', value: '' }]);
+  };
+
+  const removeMaterial = (index) => {
+    const updatedMaterials = materials.filter((_, i) => i !== index);
+    setMaterials(updatedMaterials);
+  };
+
+
   // Kategoriyalarni olish
   const getProducts = () => {
     setLoading(true);
-    fetch("https://back.ifly.com.uz/api/product")
+    fetch("https://testaoron.limsa.uz/api/product")
       .then((res) => res.json())
       .then((item) => {
         console.log(item);
@@ -53,7 +76,7 @@ function Products() {
     getDiscount();
   }, []);
   const getCategories = () => {
-    fetch("https://back.ifly.com.uz/api/category")
+    fetch("https://testaoron.limsa.uz/api/category")
       .then((res) => res.json())
       .then((data) => {
         setCategories(data?.data || []);
@@ -63,7 +86,7 @@ function Products() {
       });
   };
   const getDiscount = () => {
-    fetch("https://back.ifly.com.uz/api/discount")
+    fetch("https://testaoron.limsa.uz/api/discount")
       .then((res) => res.json())
       .then((data) => {
         setDiscount(data?.data || []);
@@ -73,7 +96,7 @@ function Products() {
       });
   };
   const getSizes = () => {
-    fetch("https://back.ifly.com.uz/api/sizes")
+    fetch("https://testaoron.limsa.uz/api/sizes")
       .then((res) => res.json())
       .then((data) => {
         setSizes(data?.data || []);
@@ -83,7 +106,7 @@ function Products() {
       });
   };
   const getColors = () => {
-    fetch("https://back.ifly.com.uz/api/colors")
+    fetch("https://testaoron.limsa.uz/api/colors")
       .then((res) => res.json())
       .then((data) => {
         setColors(data?.data || []);
@@ -109,44 +132,68 @@ function Products() {
   // Yangi kategoriya qo‘shish
   const AddProducts = (event) => {
     event.preventDefault();
-
+  
     const formData = new FormData();
-    formData.append("file", images); // Fayl obyekt (File)
-    formData.append("title_en", titleEn);
-    formData.append("title_ru", titleRu);
-    formData.append("title_de", titleDe);
-    formData.append("description_en", descriptionEn);
-    formData.append("description_ru", descriptionRu);
-    formData.append("description_de", descriptionDe);
-
-    fetch("https://back.ifly.com.uz/api/product", {
-      method: "POST",
+  
+    // Matnli maydonlar
+    formData.append('title_en', titleEn.trim());
+    formData.append('title_ru', titleRu.trim());
+    formData.append('title_de', titleDe.trim());
+    formData.append('description_en', descriptionEn.trim());
+    formData.append('description_ru', descriptionRu.trim());
+    formData.append('description_de', descriptionDe.trim());
+    formData.append('price', price);
+    formData.append('category_id', categoryId);
+    formData.append('min_sell', minSell);
+   formData.append('sizes_id', size);
+    formData.append('colors_id', color);
+    // Obyektlarni JSON qilib qo‘shish
+    formData.append('materials', JSON.stringify(materials));
+  
+    if (discountId) {
+      formData.append('discount_id', JSON.stringify(discountId)); // object bo‘lsa
+    }
+  
+    // Fayllar (array sifatida)
+    if (file && file.length > 0) {
+      Array.from(file).forEach(file => {
+        formData.append('files', file); // bir nechta faylni `files` sifatida qo‘shiladi
+      });
+    }
+  
+    // API chaqiruvi
+    fetch("https://testaoron.limsa.uz/api/product", {
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${token}`
-        // ❗️ Content-Type yozilmaydi! Browser o'zi qo'yadi `multipart/form-data`
+        'Authorization': `Bearer ${token}`,
       },
       body: formData,
     })
-      .then((res) => res.json())
-      .then((item) => {
-        if (item?.success) {
-          toast.success("Products created successfully");
-          closeModal(true);
-          getProducts();
-        } else {
-          toast.error(item?.message?.message || "Xatolik yuz berdi");
-        }
-      })
-      .catch((err) => {
-        console.error("Error:", err);
-        toast.error("Tarmoqda xatolik yuz berdi");
-      });
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        toast.success("Mahsulot muvaffaqiyatli qo‘shildi!");
+        closeModal();
+        getProducts();
+      } else {
+        console.error("Xatolik:", data);
+        toast.error("Xatolik yuz berdi: " + (data.message?.[0] || "Noma’lum xato"));
+      }
+    })
+    .catch(error => {
+      console.error("Tarmoq xatosi:", error);
+      toast.error("Tarmoq xatosi");
+    });
   };
+  
+  
+  
+
 
 
   // delete
   const deleteProducts = (id) => {
-    fetch(`https://back.ifly.com.uz/api/product/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/product/${id}`, {
       method: "DELETE",
       headers: {
         "Content-type": "application/json",
@@ -164,35 +211,7 @@ function Products() {
       }
       )
   }
-  const editProducts = (e) => {
-    e.preventDefault()
-    const formData = new FormData();
-    formData.append("file", images); // Fayl obyekt (File)
-    formData.append("title_en", titleEn);
-    formData.append("title_ru", titleRu);
-    formData.append("title_de", titleDe);
-    formData.append("description_en", descriptionEn);
-    formData.append("description_ru", descriptionRu);
-    formData.append("description_de", descriptionDe);
-    fetch(`https://back.ifly.com.uz/api/product/${clickData?.id}`, {
-      method: "PATCH",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      },
-      body: formData,
-    }).then((res) => res.json())
-      .then((elem) => {
-        if (elem?.success) {
-          toast.success("Products edit succesffuly")
-          getProducts();
-          setclickData("")
-          setShowModal(false)
-        }
-        else {
-          toast.error("Products edit failed")
-        }
-      })
-  }
+
 
   return (
     <div className='p-5'>
@@ -289,9 +308,8 @@ function Products() {
 
         </div>
       )}
-
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center  bg-opacity-50 backdrop-blur-sm z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-50">
           <div className="bg-white w-full max-w-2xl max-h-[70vh] p-6 rounded-xl shadow-lg overflow-y-auto">
             <h2 className="text-lg font-semibold mb-3 text-center">
               {clickData?.id > 0 ? "Edit Product" : "Add Product"}
@@ -299,7 +317,7 @@ function Products() {
 
             <form onSubmit={clickData?.id > 0 ? editProducts : AddProducts} className="space-y-3">
               {/* Title EN */}
-              <label className=" text-gray-700 "> Product Title (EN):</label>
+              <label className="text-gray-700">Product Title (EN):</label>
               <input
                 type="text"
                 required
@@ -309,7 +327,7 @@ function Products() {
               />
 
               {/* Title RU */}
-              <label className=" text-gray-700 ">Product Title (RU):</label>
+              <label className="text-gray-700">Product Title (RU):</label>
               <input
                 type="text"
                 required
@@ -319,7 +337,7 @@ function Products() {
               />
 
               {/* Title DE */}
-              <label className=" text-gray-700 ">Product Title (DE):</label>
+              <label className="text-gray-700">Product Title (DE):</label>
               <input
                 type="text"
                 required
@@ -329,7 +347,7 @@ function Products() {
               />
 
               {/* Description EN */}
-              <label className=" text-gray-700 ">Product Description (EN):</label>
+              <label className="text-gray-700">Product Description (EN):</label>
               <textarea
                 rows="2"
                 required
@@ -339,7 +357,7 @@ function Products() {
               />
 
               {/* Description RU */}
-              <label className=" text-gray-700 ">Product Description (RU):</label>
+              <label className="text-gray-700">Product Description (RU):</label>
               <textarea
                 rows="2"
                 required
@@ -349,7 +367,7 @@ function Products() {
               />
 
               {/* Description DE */}
-              <label className=" text-gray-700 ">Product Description (DE):</label>
+              <label className="text-gray-700">Product Description (DE):</label>
               <textarea
                 rows="2"
                 required
@@ -359,7 +377,7 @@ function Products() {
               />
 
               {/* Price */}
-              <label className=" text-gray-700 ">Price</label>
+              <label className="text-gray-700">Price</label>
               <input
                 type="number"
                 required
@@ -367,17 +385,18 @@ function Products() {
                 onChange={(e) => setPrice(e.target.value)}
                 defaultValue={clickData?.price || ""}
               />
-              {/* Number */}
-              <label className=" text-gray-700 ">Minimal nechta sotish</label>
+
+              {/* Minimal Sales */}
+              <label className="text-gray-700">Minimal sales quantity</label>
               <input
                 type="number"
                 required
                 className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setPrice(e.target.value)}
-                defaultValue={clickData?.price || ""}
+                onChange={(e) => setMinimalSales(e.target.value)}
+                defaultValue={clickData?.minimal_sales || ""}
               />
+
               {/* Category */}
-              <label className=" text-gray-700 ">Category</label>
               <select
                 required
                 className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
@@ -386,13 +405,10 @@ function Products() {
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
-                  <React.Fragment key={cat.id}>
-                    <option >{cat.name_en}</option>
-                    <option >{cat.name_ru}</option>
-                    <option >{cat.name_de}</option>
-                  </React.Fragment>
+                  <option key={cat.id} value={cat.id}>{cat.name_en}</option>
                 ))}
               </select>
+
               {/* Sizes */}
               <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Sizes</label>
@@ -418,6 +434,7 @@ function Products() {
                 </div>
               </div>
 
+              {/* Colors */}
               <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Colors</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -441,8 +458,8 @@ function Products() {
                   ))}
                 </div>
               </div>
+
               {/* Discount */}
-              <label className=" text-gray-700 ">Discount</label>
               <select
                 required
                 className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
@@ -450,12 +467,47 @@ function Products() {
                 value={discountId}
               >
                 <option value="">Select a discount</option>
-                {discount.map((cat) => (
-                  <React.Fragment key={cat.id}>
-                    <option >{cat.discount}</option>
-                  </React.Fragment>
+                {discount.map((disc) => (
+                  <option key={disc.id} value={disc.id}>{disc.discount}</option>
                 ))}
               </select>
+
+              {/* Materials */}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Materials</label>
+                {materials.map((material, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <input
+                      type="text"
+                      placeholder="Material Name"
+                      className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
+                      value={material.name}
+                      onChange={(e) => handleMaterialChange(index, 'name', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Material Value"
+                      className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
+                      value={material.value}
+                      onChange={(e) => handleMaterialChange(index, 'value', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="text-red-500"
+                      onClick={() => removeMaterial(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="text-blue-500"
+                  onClick={addMaterial}
+                >
+                  Add Material
+                </button>
+              </div>
 
               {/* Upload Image */}
               <div>
@@ -488,10 +540,6 @@ function Products() {
           </div>
         </div>
       )}
-
-
-
-
       <ToastContainer />
     </div >
   );
