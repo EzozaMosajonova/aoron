@@ -132,9 +132,9 @@ function Products() {
   // Yangi kategoriya qo‘shish
   const AddProducts = (event) => {
     event.preventDefault();
-  
+
     const formData = new FormData();
-  
+
     // Matnli maydonlar
     formData.append('title_en', titleEn.trim());
     formData.append('title_ru', titleRu.trim());
@@ -145,22 +145,17 @@ function Products() {
     formData.append('price', price);
     formData.append('category_id', categoryId);
     formData.append('min_sell', minSell);
-   formData.append('sizes_id', size);
-    formData.append('colors_id', color);
+    size.forEach(id => formData.append('sizes_id[]', id));
+    color.forEach(id => formData.append('colors_id[]', id));
     // Obyektlarni JSON qilib qo‘shish
     formData.append('materials', JSON.stringify(materials));
-  
+    formData.append('files', images);
+
     if (discountId) {
-      formData.append('discount_id', JSON.stringify(discountId)); // object bo‘lsa
+      formData.append('discount_id', (discountId)); // object bo‘lsa
     }
-  
-    // Fayllar (array sifatida)
-    if (file && file.length > 0) {
-      Array.from(file).forEach(file => {
-        formData.append('files', file); // bir nechta faylni `files` sifatida qo‘shiladi
-      });
-    }
-  
+
+
     // API chaqiruvi
     fetch("https://testaoron.limsa.uz/api/product", {
       method: 'POST',
@@ -169,25 +164,71 @@ function Products() {
       },
       body: formData,
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        toast.success("Mahsulot muvaffaqiyatli qo‘shildi!");
-        closeModal();
-        getProducts();
-      } else {
-        console.error("Xatolik:", data);
-        toast.error("Xatolik yuz berdi: " + (data.message?.[0] || "Noma’lum xato"));
-      }
-    })
-    .catch(error => {
-      console.error("Tarmoq xatosi:", error);
-      toast.error("Tarmoq xatosi");
-    });
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          toast.success("Mahsulot muvaffaqiyatli qo‘shildi!");
+          closeModal();
+          getProducts();
+        } else {
+          console.error("Xatolik:", data);
+          toast.error("Xatolik yuz berdi: " + (data.message?.[0] || "Noma’lum xato"));
+        }
+      })
+      .catch(error => {
+        console.error("Tarmoq xatosi:", error);
+        toast.error("Tarmoq xatosi");
+      });
   };
-  
-  
-  
+  const editProducts = (event) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+    // Matnli maydonlar
+    formData.append('title_en', titleEn.trim());
+    formData.append('title_ru', titleRu.trim());
+    formData.append('title_de', titleDe.trim());
+    formData.append('description_en', descriptionEn.trim());
+    formData.append('description_ru', descriptionRu.trim());
+    formData.append('description_de', descriptionDe.trim());
+    formData.append('price', price);
+    formData.append('category_id', categoryId);
+    formData.append('min_sell', minSell);
+    size.forEach(id => formData.append('sizes_id[]', id));
+    color.forEach(id => formData.append('colors_id[]', id));
+    // Obyektlarni JSON qilib qo‘shish
+    formData.append('materials', JSON.stringify(materials));
+    formData.append('files', images);
+
+    if (discountId) {
+      formData.append('discount_id', (discountId)); // object bo‘lsa
+    }
+
+
+    fetch(`https://testaoron.limsa.uz/api/product/${clickData.id}`, {
+      method: "PATCH", // yoki PUT yoki PATCH bo'lishi mumkin
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          toast.success("Mahsulot yangilandi!");
+          closeModal();
+          getProducts();
+        } else {
+          toast.error("Xatolik: " + (data.message?.[0] || "Noma’lum xato"));
+        }
+      })
+      .catch(() => {
+        toast.error("Tarmoq xatosi");
+      });
+  };
+
+
+
 
 
 
@@ -275,17 +316,28 @@ function Products() {
                     <td className="border border-gray-300 p-3">{product.sizes[0]?.size}</td>
                     <td className="border border-gray-300 p-3">{product.discount?.discount}</td>
                     <td className="border border-gray-300 p-3">
-                      {product.materials ? (
-                        Object.entries(product.materials).map(([key, value]) => (
-                          <div key={key}>{key}: {value}</div>
+                      {product.materials && product.materials.length > 0 ? (
+                        product.materials.map((material, index) => (
+                          <div key={index}>
+                            {material.name}: {material.value}
+                          </div>
                         ))
                       ) : (
                         'No materials'
                       )}
                     </td>
+
+
+
                     <td className="border border-gray-300 p-3 text-center">
                       <div className="flex items-center justify-evenly">
-                        <button className="text-[#000957] hover:text-[#000957]">
+                        <button
+                          className="text-[#000957] hover:text-[#000957]"
+                          onClick={() => {
+                            setclickData(product);
+                            setShowModal(true);
+                          }}
+                        >
                           <BorderColorIcon size={24} />
                         </button>
                         <button className="text-[#000957] hover:text-[#000957] cursor-pointer"
@@ -307,239 +359,252 @@ function Products() {
           </table>
 
         </div>
-      )}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-50">
-          <div className="bg-white w-full max-w-2xl max-h-[70vh] p-6 rounded-xl shadow-lg overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-3 text-center">
-              {clickData?.id > 0 ? "Edit Product" : "Add Product"}
-            </h2>
+      )
+      }
+      {
+        showModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-50">
+            <div className="bg-white w-full max-w-2xl max-h-[70vh] p-6 rounded-xl shadow-lg overflow-y-auto">
+              <h2 className="text-lg font-semibold mb-3 text-center">
+                {clickData?.id > 0 ? "Edit Product" : "Add Product"}
+              </h2>
 
-            <form onSubmit={clickData?.id > 0 ? editProducts : AddProducts} className="space-y-3">
-              {/* Title EN */}
-              <label className="text-gray-700">Product Title (EN):</label>
-              <input
-                type="text"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setTitleEn(e.target.value)}
-                defaultValue={clickData?.title_en || ""}
-              />
-
-              {/* Title RU */}
-              <label className="text-gray-700">Product Title (RU):</label>
-              <input
-                type="text"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setTitleRu(e.target.value)}
-                defaultValue={clickData?.title_ru || ""}
-              />
-
-              {/* Title DE */}
-              <label className="text-gray-700">Product Title (DE):</label>
-              <input
-                type="text"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setTitleDe(e.target.value)}
-                defaultValue={clickData?.title_de || ""}
-              />
-
-              {/* Description EN */}
-              <label className="text-gray-700">Product Description (EN):</label>
-              <textarea
-                rows="2"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setDescriptionEn(e.target.value)}
-                defaultValue={clickData?.description_en || ""}
-              />
-
-              {/* Description RU */}
-              <label className="text-gray-700">Product Description (RU):</label>
-              <textarea
-                rows="2"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setDescriptionRu(e.target.value)}
-                defaultValue={clickData?.description_ru || ""}
-              />
-
-              {/* Description DE */}
-              <label className="text-gray-700">Product Description (DE):</label>
-              <textarea
-                rows="2"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setDescriptionDe(e.target.value)}
-                defaultValue={clickData?.description_de || ""}
-              />
-
-              {/* Price */}
-              <label className="text-gray-700">Price</label>
-              <input
-                type="number"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setPrice(e.target.value)}
-                defaultValue={clickData?.price || ""}
-              />
-
-              {/* Minimal Sales */}
-              <label className="text-gray-700">Minimal sales quantity</label>
-              <input
-                type="number"
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setMinimalSales(e.target.value)}
-                defaultValue={clickData?.minimal_sales || ""}
-              />
-
-              {/* Category */}
-              <select
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setCategoryId(e.target.value)}
-                value={categoryId}
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name_en}</option>
-                ))}
-              </select>
-
-              {/* Sizes */}
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Sizes</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {sizes.map((item) => (
-                    <label key={item.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        value={item.id}
-                        checked={size.includes(item.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSize([...size, item.id]);
-                          } else {
-                            setSize(size.filter((id) => id !== item.id));
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      {item.size}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Colors */}
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Colors</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {colors.map((item) => (
-                    <label key={item.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        value={item.id}
-                        checked={color.includes(item.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setColor([...color, item.id]);
-                          } else {
-                            setColor(color.filter((id) => id !== item.id));
-                          }
-                        }}
-                        className="mr-2"
-                      />
-                      {item.color_en}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Discount */}
-              <select
-                required
-                className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
-                onChange={(e) => setDiscountId(e.target.value)}
-                value={discountId}
-              >
-                <option value="">Select a discount</option>
-                {discount.map((disc) => (
-                  <option key={disc.id} value={disc.id}>{disc.discount}</option>
-                ))}
-              </select>
-
-              {/* Materials */}
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Materials</label>
-                {materials.map((material, index) => (
-                  <div key={index} className="flex items-center mb-2">
-                    <input
-                      type="text"
-                      placeholder="Material Name"
-                      className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
-                      value={material.name}
-                      onChange={(e) => handleMaterialChange(index, 'name', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Material Value"
-                      className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
-                      value={material.value}
-                      onChange={(e) => handleMaterialChange(index, 'value', e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="text-red-500"
-                      onClick={() => removeMaterial(index)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="text-blue-500"
-                  onClick={addMaterial}
-                >
-                  Add Material
-                </button>
-              </div>
-
-              {/* Upload Image */}
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Upload Image</label>
+              <form onSubmit={clickData?.id > 0 ? editProducts : AddProducts} className="space-y-3">
+                {/* Title EN */}
+                <label className="text-gray-700">Product Title (EN):</label>
                 <input
-                  type="file"
-                  className="w-full px-3 py-1.5 border rounded-md text-sm"
-                  onChange={(e) => setImages(e.target.files[0])}
+                  type="text"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setTitleEn(e.target.value)}
+                  defaultValue={clickData?.title_en || ""}
                 />
-              </div>
 
-              {/* Buttons */}
-              <div className="flex justify-end space-x-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm transition"
+                {/* Title RU */}
+                <label className="text-gray-700">Product Title (RU):</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setTitleRu(e.target.value)}
+                  defaultValue={clickData?.title_ru || ""}
+                />
+
+                {/* Title DE */}
+                <label className="text-gray-700">Product Title (DE):</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setTitleDe(e.target.value)}
+                  defaultValue={clickData?.title_de || ""}
+                />
+
+                {/* Description EN */}
+                <label className="text-gray-700">Product Description (EN):</label>
+                <textarea
+                  rows="2"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setDescriptionEn(e.target.value)}
+                  defaultValue={clickData?.description_en || ""}
+                />
+
+                {/* Description RU */}
+                <label className="text-gray-700">Product Description (RU):</label>
+                <textarea
+                  rows="2"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setDescriptionRu(e.target.value)}
+                  defaultValue={clickData?.description_ru || ""}
+                />
+
+                {/* Description DE */}
+                <label className="text-gray-700">Product Description (DE):</label>
+                <textarea
+                  rows="2"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setDescriptionDe(e.target.value)}
+                  defaultValue={clickData?.description_de || ""}
+                />
+
+                {/* Price */}
+                <label className="text-gray-700">Price</label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setPrice(e.target.value)}
+                  defaultValue={clickData?.price || ""}
+                />
+
+                {/* Minimal Sales */}
+                <label className="text-gray-700">Minimal sales quantity</label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setMinSell(e.target.value)}
+                  defaultValue={clickData?.minimal_sales || ""}
+                />
+
+                {/* Category */}
+                <select
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  value={categoryId}
                 >
-                  {clickData?.id > 0 ? "Edit" : "Add"}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1.5 rounded-md text-sm transition"
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name_en}</option>
+                  ))}
+                </select>
+
+                {/* Sizes */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">Sizes</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {sizes.map((item) => (
+                      <label key={item.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          value={item.id}
+                          // Checkboxda sizes tanlash uchun
+                          onChange={(e) => {
+                            const selectedId = parseInt(e.target.value);
+                            if (e.target.checked) {
+                              setSize([...size, selectedId]);
+                            } else {
+                              setSize(size.filter(id => id !== selectedId));
+                            }
+                          }}
+
+                          className="mr-2"
+                        />
+                        {item.size}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Colors */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">Colors</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {colors.map((item) => (
+                      <label key={item.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          value={item.id}
+                          // checked={color.includes(item.id)}
+                          // Checkboxda colors tanlash uchun
+                          onChange={(e) => {
+                            const selectedId = parseInt(e.target.value);
+                            if (e.target.checked) {
+                              setColor([...color, selectedId]);
+                            } else {
+                              setColor(color.filter(id => id !== selectedId));
+                            }
+                          }}
+
+                          className="mr-2"
+                        />
+                        {item.color_en}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Discount */}
+                <select
+                  required
+                  className="w-full px-3 py-1.5 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                  onChange={(e) => setDiscountId(e.target.value)}
+                  value={discountId}
                 >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                  <option value="">Select a discount</option>
+                  {discount.map((disc) => (
+                    <option key={disc.id} value={disc.id}>{disc.discount}</option>
+                  ))}
+                </select>
+
+                {/* Materials */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 mb-2">Materials</label>
+                  {materials.map((material, index) => (
+                    <div key={index} className="flex items-center mb-2">
+                      <input
+                        type="text"
+                        placeholder="Material Name"
+                        className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
+                        value={material.name}
+                        onChange={(e) =>
+                          handleMaterialChange(index, 'name', e.target.value)
+                        }
+                      />
+                      <input
+                        type="number"
+                        placeholder="Material Value"
+                        className="w-1/2 px-2 py-1 border border-gray-300 rounded mr-2"
+                        value={material.value}
+                        onChange={(e) =>
+                          handleMaterialChange(index, 'value', e.target.value)
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="text-red-500"
+                        onClick={() => removeMaterial(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="text-blue-500 mt-2"
+                    onClick={addMaterial}
+                  >
+                    Add Material
+                  </button>
+                </div>
+
+
+                {/* Upload Image */}
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Upload Image</label>
+                  <input
+                    type="file"
+                    className="w-full px-3 py-1.5 border rounded-md text-sm"
+                    onChange={(e) => setImages(e.target.files[0])}
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex justify-end space-x-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm transition"
+                  >
+                    {clickData?.id > 0 ? "Edit" : "Add"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1.5 rounded-md text-sm transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
       <ToastContainer />
     </div >
   );
